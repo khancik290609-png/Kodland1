@@ -5,3 +5,7 @@ def generate_password(length):
     for i in range(length):
         password += random.choice(password_symbols)
     return password
+def smash_bash(password):
+    letters=list(password)
+    random.shuffle(letters)
+    return "".join(letters)
