@@ -14,7 +14,7 @@ dictionary = {'info':
               u'Bot\'s command list:\n{comlist}\n'
               }
 
-API_TOKEN = os.getenv("API_TOKEN")
+API_TOKEN=os.getenv('API_TOKEN')
 bot = telebot.TeleBot(API_TOKEN)
 
 # Handle '/start' and '/help'
@@ -89,7 +89,7 @@ def labyrinth_move(message):
 print("Bot is ready to handle info, password, mix, heh, and mem commands...")
 @bot.message_handler(commands=['info'])
 def send_info(message):
-    bot.send_message(message.chat.id, dictionary['info'].format(name=bot.get_me().first_name, comlist="\n".join(['/help', '/start', '/info', '/password', '/mix', '/heh', '/mem'])))
+    bot.send_message(message.chat.id, dictionary['info'].format(name=bot.get_me().first_name, comlist="\n".join(['/help', '/start', '/info', '/password', '/mix', '/heh', '/mem', '/labyrinth', 'private commands: left, right, down'])))
 
 print("Bot is ready to handle password command...")
 @bot.message_handler(commands=['password'])
