@@ -33,6 +33,6 @@ def render_area(area, pos):
 
     text = ""
     for row in view:
-        text += " ".join(symbols[cell] for cell in row) + "\n"
+        text += "\n" + "".join(symbols[cell] for cell in row) + "\n"
 
     return text
