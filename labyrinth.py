@@ -22,7 +22,7 @@ def create_zone(rows, cols):
 
 def render_area(area, pos):
     symbols = {
-    0: ' ',
+    0: '\u2B1C',
     1: '\u2B1B',
     2: '🙂'
     }
