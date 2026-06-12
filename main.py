@@ -6,6 +6,7 @@ from labyrinth import render_area
 from botlogic import generate_password
 from botlogic import smash_bash
 from dotenv import load_dotenv
+from telebot import types
 
 load_dotenv()
 
@@ -14,8 +15,21 @@ dictionary = {'info':
               u'Bot\'s command list:\n{comlist}\n'
               }
 
+symbols = {
+    0: ' ',
+    1: '\u2B1B',
+    2: '🙂'
+}
+
 API_TOKEN=os.getenv('API_TOKEN')
 bot = telebot.TeleBot(API_TOKEN)
+
+def get_keyboard():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard = True)
+    markup.row("⬅", "➡")
+    markup.row("⬇", "🔄")
+
+    return markup
 
 # Handle '/start' and '/help'
 print("Bot is starting...")
@@ -45,31 +59,56 @@ def structure(message):
         return
     players[message.chat.id] = {
         "area": area,
-        "pos": start
+        "pos": start,
+        "rows": rows,
+        "cols": cols
     }
-    bot.reply_to(
-        message,
-        "Лабиринт создан!\n\n" +
-        render_area(area, start) +
-        "\nleft, right или down"
-    )
 
-print("Bot is ready to handle labyrinth commands...")
-@bot.message_handler(func=lambda m: m.text in ["left", "right", "down"])
-def labyrinth_move(message):
+    bot.send_message(message.chat.id, "Лабиринт создан! Используй кнопки для перемещения." + render_area(area, start), reply_markup=get_keyboard())
+
+@bot.message_handler(func=lambda m: m.text == "🔄")
+def restart(message):
     chat_id = message.chat.id
     if chat_id not in players:
         bot.reply_to(message, "Сначала создай лабиринт командой /labyrinth")
         return
     area = players[chat_id]["area"]
-    row, col = players[chat_id]["pos"]
+    rows = players[chat_id]["rows"]
+    cols = players[chat_id]["cols"]
+    new_area = create_zone(rows, cols)
+    start = None
+    for c in range(cols):
+        if new_area[0][c] == 0:
+            start = (0, c)
+            break
+    if start is None:
+        bot.reply_to(message, "Не удалось найти вход.")
+        return
+    players[chat_id] = {
+        "area": new_area,
+        "pos": start,
+        "rows": rows,
+        "cols": cols
+    }
+    bot.send_message(chat_id, "Лабиринт перезапущен!" + render_area(new_area, start), reply_markup=get_keyboard())
+
+print("Bot is ready to handle labyrinth commands...")
+@bot.message_handler(func=lambda m: m.text in ["⬅", "➡", "⬇"])
+def labyrinth_move(message):
+    chat_id = message.chat.id
+    if chat_id not in players:
+        bot.reply_to(message, "Сначала создай лабиринт командой /labyrinth")
+        return
+    data = players[chat_id]
+    area = data["area"]
+    row, col = data["pos"]
     move = message.text.lower()
     new_row, new_col = row, col
-    if move == "left":
+    if move == "⬅":
         new_col -= 1
-    elif move == "right":
+    elif move == "➡":
         new_col += 1
-    elif move == "down":
+    elif move == "⬇":
         new_row += 1
     rows = len(area)
     cols = len(area[0])
@@ -81,10 +120,12 @@ def labyrinth_move(message):
         return
     players[chat_id]["pos"] = (new_row, new_col)
     if new_row == rows - 1:
-        bot.reply_to(message, "WIN!\n\n" + render_area(area, (new_row, new_col)))
+        bot.send_message(message.chat.id, "WIN!\n\n" + render_area(area, (new_row, new_col)), reply_markup=types.ReplyKeyboardRemove())
         del players[chat_id]
         return
-    bot.reply_to(message, render_area(area, (new_row, new_col)))
+    
+    bot.send_message(message.chat.id, render_area(area, (new_row, new_col)), reply_markup=get_keyboard())
+
 
 print("Bot is ready to handle info, password, mix, heh, and mem commands...")
 @bot.message_handler(commands=['info'])

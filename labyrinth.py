@@ -1,4 +1,11 @@
 import random
+
+symbols = {
+    0: ' ',
+    1: '\u2B1B',
+    2: '🙂'
+}
+
 def create_zone(rows, cols):
     grid = [[1 for _ in range(cols)] for _ in range(rows)]
     col = random.randint(0, cols-1)
@@ -27,6 +34,6 @@ def render_area(area, pos):
 
     text = ""
     for row in view:
-        text += " ".join(map(str, row)) + "\n"
+        text += " ".join(symbols[cell] for cell in row) + "\n"
 
     return text
